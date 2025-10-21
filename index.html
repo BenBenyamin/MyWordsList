@@ -1,0 +1,253 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <h1 id="header">My Words List</h1>
+  </head>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    #myInput {
+      width: 100%;
+      font-size: 16px;
+      padding: 12px 12px 12px 12px;
+      border: 1px solid #ddd;
+      margin-bottom: 12px;
+    }
+    #search {
+      background-color: #4caf50; /* Green */
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+    }
+    #clear {
+      background-color: #fcbf50; /* Green */
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+    }
+    .highlight {
+      background-color: yellow;
+    }
+  </style>
+  <body>
+    <script src="mywords.js" charset="utf-8"></script>
+    <script src="generate_table.js"></script>
+    <script src="detone.js" charset="utf-8"></script>
+
+    <input
+      type="text"
+      id="myInput"
+      placeholder="Search a word.."
+      title="Type in a name"
+    />
+    <button onclick="search()" id="search">Search</button
+    ><button onclick="clearSearch()" id="clear">Clear</button><br /><br />
+    <button onclick="showUnkown()">Show Unkown!</button><br /><br />
+    Found:
+    <p id="resultsCnt" style="display: inline"></p>
+    <a href="flashcards.html" style="float: right">Practice unkown words</a
+    ><br /><br />
+
+    <script>
+      var canPlaySound = true;
+
+      myInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          document.getElementById("search").click();
+        }
+      });
+
+      document.getElementById("resultsCnt").innerHTML = mywords.length;
+
+      var tbl = draw();
+
+      function draw() {
+        console.log("draw");
+		keys = Object.keys(mywords[0]);
+		console.log(keys)
+        this.tbl = generateTable(mywords.length + 1, keys.length);
+
+		let i;
+        for (i = 0; i < keys.length -2; i++) {
+          const title = keys[i]
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+          tbl.rows[0].cells[i].innerHTML = `<b>${title}</b>`;
+        }
+        tbl.rows[0].cells[i].innerHTML = "<b>Sound</b>";
+        tbl.rows[0].cells[i+1].innerHTML = "<b>Known?</b>";
+
+        let tbl_row = 1;
+
+        for (let i = 0; i < mywords.length; i++) {
+		  let j;
+		  let rowCount = 0;
+          for (let j = 0; j < keys.length; j++) {
+            key = keys[j];
+            if (key == "known" || key == "example") {
+              continue;
+            }
+            tbl.rows[tbl_row].cells[rowCount].innerHTML  = mywords[i][key];
+			rowCount ++;
+          }
+		  tbl.rows[tbl_row].cells[rowCount].innerHTML = "";
+		  addButton(tbl.rows[tbl_row].cells[rowCount], i);
+
+          if (mywords[i]["known"]) {
+            tbl.rows[tbl_row].cells[rowCount+1].innerHTML = "✔";
+          } else {
+            tbl.rows[tbl_row].cells[rowCount+1].innerHTML = "✘";
+          }
+
+          if (mywords[i]["example"]) {
+            tbl.rows[tbl_row + 1].cells[0].innerHTML =
+              "&emsp; &emsp;&emsp;&emsp;<b>Example:&emsp;</b>" +
+              mywords[i]["example"];
+          } else {
+            tbl.rows[tbl_row + 1].style.display = "none";
+          }
+
+          tbl_row += 2;
+        }
+
+        return tbl;
+      }
+
+      function search() {
+        input = document.getElementById("myInput").value;
+        results = mywords.length;
+        for (let i = 1; i < mywords.length * 2 + 1; i += 2) {
+          unhighlightAll(tbl.rows[i]);
+          word = deTone(filter(input, i));
+          //console.log(`pinyin = ${word}, input = ${input}`)
+          if (input != "" && !filter(input, i)) {
+            tbl.rows[i].style.display = "none";
+            tbl.rows[i + 1].style.display = "none";
+            results--;
+          } else {
+            tbl.rows[i].style.display = "";
+            if (tbl.rows[i + 1].cells[0].innerHTML != "Empty") {
+              tbl.rows[i + 1].style.display = "";
+            }
+          }
+        }
+        if (results == 0) {
+          tbl.style.display = "none";
+        } else {
+          tbl.style.display = "";
+        }
+        document.getElementById("resultsCnt").innerHTML = results;
+      }
+
+      function clearSearch() {
+        console.log("clear");
+        document.getElementById("myInput").value = "";
+        search();
+      }
+
+      function filter(input, i) {
+        isWord = tbl.rows[i].cells[0].innerHTML.includes(input);
+        isSimp = tbl.rows[i].cells[1].innerHTML.includes(input);
+        isTrans = tbl.rows[i].cells[3].innerHTML
+          .toLowerCase()
+          .includes(input.toLowerCase());
+        isPinyin = searchPinyin(
+          tbl.rows[i].cells[2].innerHTML.toLowerCase(),
+          input.toLowerCase()
+        );
+
+        if (isWord) {
+          highlight(input, tbl.rows[i].cells[0]);
+        }
+        if (isSimp) {
+          highlight(input, tbl.rows[i].cells[1]);
+        }
+        if (isTrans) {
+          highlight(input.toLowerCase(), tbl.rows[i].cells[3]);
+          highlight(input.toUpperCase(), tbl.rows[i].cells[3]);
+        }
+
+        if (isPinyin) {
+          highlightPinyin(input, tbl.rows[i].cells[2]);
+        }
+
+        return isWord || isTrans || isPinyin || isSimp;
+      }
+
+      function addButton(cell, i) {
+        let button = document.createElement("button");
+        button.innerText = "►";
+
+        var funcString = `playSound(${i})`;
+
+        button.setAttribute("onclick", funcString);
+        cell.appendChild(button);
+      }
+
+      function playSoundOnline(audioID) {
+        if (!canPlaySound) {
+          return;
+        }
+        current_word = mywords[audioID]["word"];
+        url =
+          "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=" +
+          encodeURIComponent(current_word) +
+          "&tl=zh-TW&ttsspeed=0.24";
+        alert(encodeURIComponent(current_word));
+        var audio = new Audio(url);
+        canPlaySound = false;
+        audio.addEventListener("ended", function () {
+          canPlaySound = true;
+        });
+        audio.play();
+      }
+
+      function playSound(audioID) {
+        if (!canPlaySound) {
+          return;
+        }
+        var audioFileLoc = "./audio/" + audioID + ".mp3";
+        var audio = new Audio(audioFileLoc);
+        canPlaySound = false;
+        audio.addEventListener("ended", function () {
+          canPlaySound = true;
+        });
+        audio.play();
+      }
+
+      function showUnkown() {
+        results = mywords.length;
+        for (let i = 1; i < mywords.length * 2 + 1; i += 2) {
+          unhighlightAll(tbl.rows[i]);
+          if (tbl.rows[i].cells[5].innerHTML != "✘") {
+            tbl.rows[i].style.display = "none";
+            tbl.rows[i + 1].style.display = "none";
+            results--;
+          } else {
+            tbl.rows[i].style.display = "";
+            if (tbl.rows[i + 1].cells[0].innerHTML != "Empty") {
+              tbl.rows[i + 1].style.display = "";
+            }
+          }
+        }
+        if (results == 0) {
+          tbl.style.display = "none";
+        } else {
+          tbl.style.display = "";
+        }
+        document.getElementById("resultsCnt").innerHTML = results;
+      }
+    </script>
+  </body>
+</html>

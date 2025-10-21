@@ -1,0 +1,1 @@
+mywords =[{"word":"\u7e3d\u662f","translation":"always","example":"","known":false},{"word":"\u5f88\u5435","translation":"Noisy","example":"","known":true, "example": "Debudeliao"}]

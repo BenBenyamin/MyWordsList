@@ -1,0 +1,140 @@
+<html>
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1" /> 
+<h1 id ="header" align = "center"> <img src="logo-flashcards.png" style = "width:30%;" alt="FlashCards"> </h1>
+</head>
+<style>
+
+table{
+    /* Set the table width, can be a percentage or size */
+    width: device-width;
+	initial-scale=1;
+    
+    /* If no widths are present on the first row, the column widths are divided equally across the table */
+    table-layout: fixed;
+}
+
+td{
+  /* Cell border */
+  border: 1px solid black;
+  
+  /* Hide anything in the row that overflows the cell otherwise content could cross cell borders */
+  overflow-wrap: anywhere;
+}
+
+#refresh {
+  background-color: #FCBF50; /* Green */
+  border: 1px solid-black;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 10px;
+}
+
+
+</style>
+<body>
+	<script src="mywords.js" charset="utf-8"></script>
+	<script src="generate_table.js"></script>
+	<script src="flashcards.js" charset="utf-8"></script>
+	<script src="gamemanager.js" charset="utf-8"></script>
+	
+	<button id = "refresh" onclick="game.restart()" style = "float: right;">Restart</button>
+	<p id ="remembered">404</p>
+	<p id = "clearReview"></p>
+	
+	<label id = "menu">
+	<!-- <p align = "center" style="font-size:1.5em";> <b>Choose Batch</b> </p> -->
+	
+	<p align = "center" style='font-size:20px'> <b>Cards per batch: </b></p>
+	
+	<p align = "center"><input id ="cardsPerBatch" type="number" min=1 max =99 style="text-align: center;"> </input></p>
+	
+	<p align = "center" style='font-size:20px'> <b>Batch number:</b> </p>
+	
+	<p align = "center"><input id ="batchNumber" type="number" min=1 max =99 style="text-align: center;">  </input></p>
+	
+	<p align = "center"><input id ="random?" type="checkbox" style="text-align: center;" > Random selection </input></p>
+	<p align = "center"><input id ="voiceFirst?" type="checkbox" style="text-align: center;"> Play sound before word </input></p>
+	
+	<p id = "badInput" align = "center" style="color: red;"></p>
+	
+	<p align = "center" ><button onclick = "start()">Start!</button> <button onclick = "clearAll()">Clear</button> </p>
+	
+	</label>
+	<script>
+	
+	document.getElementById("remembered").style.display = "none";
+	document.getElementById("refresh").style.display = "none";
+	
+	var game;
+	
+	function start()
+	{
+		var cardsPerBatch = document.getElementById("cardsPerBatch").value;
+		var batchNumber = document.getElementById("batchNumber").value;
+				
+		var voiceFirst = document.getElementById("voiceFirst?").checked;
+		var randSelect = document.getElementById("random?").checked;
+		
+		
+		if  (cardsPerBatch < 1 ||  (batchNumber < 1 && !randSelect))
+		{
+			document.getElementById("badInput").innerHTML = "Invalid input!";
+			return;
+		}
+		
+		var  unkownWords =  unKnown(mywords);
+		
+		if (cardsPerBatch > unkownWords)
+		{
+			document.getElementById("badInput").innerHTML =  `There are only ${unkownWords} unkown words, ${cardsPerBatch} > ${unkownWords}`;
+			return;
+		}
+		
+		else if ((batchNumber)*cardsPerBatch > unkownWords && !randSelect)
+		{
+			var lastBatchNum =  Math.floor(unkownWords/cardsPerBatch) ;
+			document.getElementById("badInput").innerHTML = `There are only ${unkownWords} unkown words, the  last batch is ${lastBatchNum} < ${batchNumber}`;
+			return;
+		}
+		
+		document.getElementById("badInput").innerHTML ="";
+		
+		document.getElementById("menu").style.display = "none";
+
+		var gameManager = new GameManager(mywords,wordsPerBatch = cardsPerBatch);
+		game  = gameManager.startGame(batchNumber-1,voiceFirst, randomSelection= randSelect);
+		
+		//document.getElementById("badInput").innerHTML = `cardsPerBatch = ${cardsPerBatch} , batchNumber = ${batchNumber}`;
+	}
+	
+	function clearAll()
+	{
+		document.getElementById("cardsPerBatch").value = "";
+		document.getElementById("batchNumber").value = "";
+		document.getElementById("random?").checked = false;
+		document.getElementById("voiceFirst?").checked = false;
+	}
+	
+	function unKnown(myWordsDic)
+	{
+		var unkown = 0;
+		
+		for (var i = 0; i < myWordsDic.length; i++)
+		{
+			if (!myWordsDic[i]["known"]){ unkown++; }
+		}
+		
+		return unkown;
+	}
+	
+	</script>
+	
+
+</body>
+</html>
