@@ -42,7 +42,7 @@
   <body>
     <script src="mywords.js" charset="utf-8"></script>
     <script src="generate_table.js"></script>
-    <script src="detone.js" charset="utf-8"></script>
+    <script src="utils.js" charset="utf-8"></script>
 
     <input
       type="text"
@@ -60,6 +60,7 @@
 
     <script>
       var canPlaySound = true;
+	  var knownIndex = -1;
 
       myInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
@@ -73,9 +74,7 @@
       var tbl = draw();
 
       function draw() {
-        console.log("draw");
 		keys = Object.keys(mywords[0]);
-		console.log(keys)
         this.tbl = generateTable(mywords.length + 1, keys.length);
 
 		let i;
@@ -104,6 +103,7 @@
 		  tbl.rows[tbl_row].cells[rowCount].innerHTML = "";
 		  addButton(tbl.rows[tbl_row].cells[rowCount], i);
 
+		  knownIndex = rowCount+1;
           if (mywords[i]["known"]) {
             tbl.rows[tbl_row].cells[rowCount+1].innerHTML = "✔";
           } else {
@@ -204,7 +204,6 @@
           "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=" +
           encodeURIComponent(current_word) +
           "&tl=zh-TW&ttsspeed=0.24";
-        alert(encodeURIComponent(current_word));
         var audio = new Audio(url);
         canPlaySound = false;
         audio.addEventListener("ended", function () {
@@ -230,7 +229,7 @@
         results = mywords.length;
         for (let i = 1; i < mywords.length * 2 + 1; i += 2) {
           unhighlightAll(tbl.rows[i]);
-          if (tbl.rows[i].cells[5].innerHTML != "✘") {
+          if (tbl.rows[i].cells[knownIndex].innerHTML != "✘") {
             tbl.rows[i].style.display = "none";
             tbl.rows[i + 1].style.display = "none";
             results--;
