@@ -61,6 +61,7 @@
     <script>
       var canPlaySound = true;
 	  var knownIndex = -1;
+	  var tableHeaders = [];
 
       myInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
@@ -83,9 +84,13 @@
             .replace(/_/g, " ")
             .replace(/\b\w/g, (c) => c.toUpperCase());
           tbl.rows[0].cells[i].innerHTML = `<b>${title}</b>`;
+		  tableHeaders.push(title.toLowerCase());
         }
         tbl.rows[0].cells[i].innerHTML = "<b>Sound</b>";
         tbl.rows[0].cells[i+1].innerHTML = "<b>Known?</b>";
+
+		tableHeaders.push("sound");
+		tableHeaders.push("known");
 
         let tbl_row = 1;
 
@@ -120,7 +125,6 @@
 
           tbl_row += 2;
         }
-
         return tbl;
       }
 
@@ -129,8 +133,6 @@
         results = mywords.length;
         for (let i = 1; i < mywords.length * 2 + 1; i += 2) {
           unhighlightAll(tbl.rows[i]);
-          word = deTone(filter(input, i));
-          //console.log(`pinyin = ${word}, input = ${input}`)
           if (input != "" && !filter(input, i)) {
             tbl.rows[i].style.display = "none";
             tbl.rows[i + 1].style.display = "none";
@@ -150,42 +152,45 @@
         document.getElementById("resultsCnt").innerHTML = results;
       }
 
-      function clearSearch() {
+      function clearSearch() 
+	  {
         console.log("clear");
         document.getElementById("myInput").value = "";
         search();
       }
 
-      function filter(input, i) {
-        isWord = tbl.rows[i].cells[0].innerHTML.includes(input);
-        isSimp = tbl.rows[i].cells[1].innerHTML.includes(input);
-        isTrans = tbl.rows[i].cells[3].innerHTML
-          .toLowerCase()
-          .includes(input.toLowerCase());
-        isPinyin = searchPinyin(
-          tbl.rows[i].cells[2].innerHTML.toLowerCase(),
-          input.toLowerCase()
-        );
+	  function filter(input,i)
+	  {
+		let retValue = false;
 
-        if (isWord) {
-          highlight(input, tbl.rows[i].cells[0]);
-        }
-        if (isSimp) {
-          highlight(input, tbl.rows[i].cells[1]);
-        }
-        if (isTrans) {
-          highlight(input.toLowerCase(), tbl.rows[i].cells[3]);
-          highlight(input.toUpperCase(), tbl.rows[i].cells[3]);
-        }
+		let rowIndex = 0;
+		for (let j =0; j<tableHeaders.length; j++)
+		{
+			const header = tableHeaders[j];
+			if (header == "known" || header == "sound") continue;
+			
+			
+			let isKey; if (isAccent(input)) 
+			{ 
+				isKey = tbl.rows[i].cells[j].innerHTML.toLowerCase().includes(input.toLowerCase()) 
+			} 
+			else 
+			{ 
+				const cellText = tbl.rows[i].cells[j].innerHTML;
+				const idx = removeAccents(cellText.toLowerCase()).indexOf(removeAccents(input.toLowerCase()));
+				isKey = idx >= 0;
+				if (isKey) input = cellText.substring(idx, idx + input.length);
+			}
+			if (isKey) highlight(input,tbl.rows[i].cells[j])
 
-        if (isPinyin) {
-          highlightPinyin(input, tbl.rows[i].cells[2]);
-        }
+			retValue = retValue || isKey;
+		}
+		return retValue;
+	  }
 
-        return isWord || isTrans || isPinyin || isSimp;
-      }
 
-      function addButton(cell, i) {
+      function addButton(cell, i) 
+	  {
         let button = document.createElement("button");
         button.innerText = "►";
 
