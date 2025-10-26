@@ -1,15 +1,13 @@
-
+// TODO: make the FlashCard dynamic
 class FlashCard 
 {
 	constructor(wordCard , index)
 	{
-		this.word 		 = 	wordCard["word"];
-		this.simplified  = 	wordCard["simplified"];
-		this.pinyin 	 = 	wordCard["pinyin"];
-		this.translation = 	wordCard["translation"];		
-		this.example     = 	wordCard["example"];
+
+		this.data = wordCard;
+		this.keys = Object.keys(this.data);
 		
-		this.index		 =  index;
+		this.index =  index;
 		
 		this.createTable();
 		
@@ -18,29 +16,38 @@ class FlashCard
 	
 	createTable()
 	{
+		const width = Array(this.keys.length).fill('');
+
+		width[0] = '20%';
+		width[1] = '20%';
+		width[this.keys.length - 1] = '10%';
 		
-		const width = ['20%','20%','','','10%'];
 		
+		this.tbl = generateTable(2,this.keys.length -1,width);
 		
-		this.tbl = generateTable(2,5,width);
+		var colNum = 0;
+		for (let i = 0; i< this.keys.length; i++)
+		{
+			const title = this.keys[i]
+			.replace(/_/g, " ")
+			.replace(/\b\w/g, (c) => c.toUpperCase());
+
+			if (title == "Example" || title == "Known") {continue;}
+		  	this.tbl.rows[0].cells[colNum].innerHTML = `<b>${title}</b>`;
+
+			this.tbl.rows[1].cells[colNum].innerHTML = this.data[this.keys[i]];
+
+			colNum++;
+		}
+		this.tbl.rows[0].cells[colNum].innerHTML = "<b>Sound</b>";
+
 		
-		this.tbl.rows[0].cells[0].innerHTML = "<b>Word</b>";
-		this.tbl.rows[0].cells[1].innerHTML = "<b>Simplified</b>";
-		this.tbl.rows[0].cells[2].innerHTML = "<b>Pinyin</b>";
-		this.tbl.rows[0].cells[3].innerHTML = "<b>Meaning</b>";
-		this.tbl.rows[0].cells[4].innerHTML = "<b>Sound</b>";
+		this.tbl.rows[1].cells[colNum].innerHTML = "";
+		addPlayButton(this.tbl.rows[1].cells[colNum],this.index);
 		
-		this.tbl.rows[1].cells[0].innerHTML = this.word;
-		this.tbl.rows[1].cells[1].innerHTML = this.simplified;
-		this.tbl.rows[1].cells[2].innerHTML = this.pinyin;
-		this.tbl.rows[1].cells[3].innerHTML = this.translation;
-		
-		this.tbl.rows[1].cells[4].innerHTML = "";
-		addPlayButton(this.tbl.rows[1].cells[4],this.index);
-		
-		if (this.example)
+		if (this.data.example)
 			{
-				this.tbl.rows[2].cells[0].innerHTML = "&emsp; &emsp;&emsp;&emsp;<b>Example:&emsp;</b>" + this.example;
+				this.tbl.rows[2].cells[0].innerHTML = "&emsp; &emsp;&emsp;&emsp;<b>Example:&emsp;</b>" + this.data.example;
 			}
 			
 			else
@@ -52,7 +59,6 @@ class FlashCard
 	
 	show(topRow = true)
 	{
-		//createTable();
 		this.tbl.style.display = "";
 		
 		if (topRow) { this.tbl.rows[0].style.display = "";}

@@ -74,9 +74,7 @@ class GameManager
 				flashCardBatch.push( this.unkownWords[ batchNo * this.wordsPerBatch + i ] );
 			}
 		}
-		
-		//alert (`${batchNo} * ${this.wordsPerBatch} + idx`);
-		
+				
 		var wordsPerBatch =  this.wordsPerBatch;
 		
 		var game = new Game(flashCardBatch,soundFirst);
@@ -144,7 +142,7 @@ class Game
 		
 		else  
 		{
-			this.tbl.rows[0].cells[0].innerHTML = "<label  style='font-size:20px'>" + this.flashcards[idx]["word"]+ "</label>";
+			this.tbl.rows[0].cells[0].innerHTML = "<label  style='font-size:20px'>" + this.flashcards[idx].data["word"]+ "</label>";
 		}
 		addButton(this.tbl.rows[1].cells[0],`showFlashCard(${idx})`,"Show Answer");
 		
@@ -152,23 +150,31 @@ class Game
 	
 	showFlashCard(index)
 	{
+
+		var flashcard = this.flashcards[index];
 		
 		if  (!this.soundFirst)
 		{
-			var realIdx = this.flashcards[index].index;
+			var realIdx = flashcard.index;
 			playSound(realIdx);
 			addPlayButton(this.tbl.rows[2].cells[0],realIdx,true);
 		}
 		
-		this.tbl.rows[0].cells[0].innerHTML = "<label  style='font-size:20px'>" + this.flashcards[index]["word"]+"</label>";
+		this.tbl.rows[0].cells[0].innerHTML = "<label  style='font-size:20px'>" + flashcard.data["word"]+"</label>";
 		
-		this.tbl.rows[0].cells[0].innerHTML += "<br>" + this.flashcards[index]["simplified"];
+		var colNum = 0;
+		for (let i = 0; i< flashcard.keys.length; i++)
+		{
+			const title = flashcard.keys[i]
+
+			if (title == "example" || title == "known" || title == "word") {continue;}
+
+			this.tbl.rows[1].cells[colNum].innerHTML = flashcard.data[flashcard.keys[i]];
+
+			colNum++;
+		}
 		
-		this.tbl.rows[0].cells[0].innerHTML += "<br>" + this.flashcards[index]["pinyin"];
-		
-		this.tbl.rows[0].cells[0].innerHTML += "<br>" + this.flashcards[index]["translation"];
-		
-		if(this.flashcards[index]["example"]) {this.tbl.rows[0].cells[0].innerHTML += "<br> Example: " + this.flashcards[index]["example"];}
+		if(flashcard.data.example) {this.tbl.rows[0].cells[0].innerHTML += "<br> <b>Example:</b>&emsp; &emsp;" + flashcard.data.example;}
 		
 		removeAllChildNodes(this.tbl.rows[1].cells[0]);
 		
@@ -179,7 +185,6 @@ class Game
 		this.tbl.rows[1].cells[0].innerHTML =  this.tbl.rows[1].cells[0].innerHTML + "&nbsp;";
 		
 		addButton(this.tbl.rows[1].cells[0],`didNotRemember()`,"No");
-		//addPlayButton(this.tbl.rows[2].cells[0],this.realIndex(index));
 
 	}
 	

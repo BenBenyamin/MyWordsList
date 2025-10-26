@@ -1,1 +1,1 @@
-mywords =[{"word":"\u7e3d\u662f","translation":"alwáys","example":"","known":false},{"word":"\u5f88\u5435","translation":"Noisy","example":"","known":true, "example": "Debudeliao"}]
+mywords =[{"word":"\u7e3d\u662f","translation":"alwáys","example":"","known":true},{"word":"\u7e3d\u662f","translation":"always","example":"","known":true},{"word":"\u5f88\u5435","translation":"Noisy","example":"","known":false, "example": "Debudeliao"}]
