@@ -40,6 +40,7 @@ td{
 <body>
 	<script src="mywords.js" charset="utf-8"></script>
 	<script src="generate_table.js"></script>
+	<script src="index.js"></script>
 	<script src="flashcards.js" charset="utf-8"></script>
 	<script src="gamemanager.js" charset="utf-8"></script>
 	
@@ -72,6 +73,7 @@ td{
 	document.getElementById("refresh").style.display = "none";
 	
 	var game;
+	var canPlaySound = true;
 	
 	function start()
 	{

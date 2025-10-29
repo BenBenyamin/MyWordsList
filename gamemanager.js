@@ -168,7 +168,7 @@ class Game
 			const title = flashcard.keys[i]
 
 			if (title == "example" || title == "known" || title == "word") {continue;}
-
+			console.log(this.tbl.rows.length);
 			this.tbl.rows[1].cells[colNum].innerHTML = flashcard.data[flashcard.keys[i]];
 
 			colNum++;

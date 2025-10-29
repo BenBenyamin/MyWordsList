@@ -1,4 +1,3 @@
-// TODO: make the FlashCard dynamic
 class FlashCard 
 {
 	constructor(wordCard , index)
@@ -82,7 +81,7 @@ class FlashCard
 		let but = document.createElement('button');
 		but.innerText = '►';
 		
-		var funcString =`playSound(${index})`;
+		var funcString =`playSoundOnline(${index})`;
 		
 		but.setAttribute('onclick', funcString);
 		
