@@ -1,3 +1,6 @@
+var language = "zh-TW";
+var speed = 0.24;
+
 function draw()
     {
       keys = Object.keys(mywords[0]);
@@ -157,7 +160,7 @@ function draw()
       url =
         "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=" +
         encodeURIComponent(current_word) +
-        "&tl=zh-TW&ttsspeed=0.24";
+        "&tl="+ language +"&ttsspeed="+ speed;
       var audio = new Audio(url);
       canPlaySound = false;
       audio.addEventListener("ended", function ()

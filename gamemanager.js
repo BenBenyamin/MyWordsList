@@ -94,9 +94,8 @@ class Game
 		this.remembered = Array(flashCardList.length).fill(false);
 		this.soundFirst = soundFirst;
 		this.rememberedCnt  = 0;
-		
 
-		this.tbl = generateTable(3,1,[], false);
+		this.tbl = generateTable(this.flashcards[0].keys.length,1,[], false);
 		
 		//style
 		this.tbl.style.borderWidth  = "5px";
@@ -116,12 +115,14 @@ class Game
 	
 	start()
 	{
+		
 		document.getElementById("remembered").style.display = "";
 		document.getElementById("refresh").style.display = "";
 		
-		addButton(this.tbl.rows[1].cells[0],`showNextFlashcard()`,"Start");
+		var rowIdx = Math.floor(this.tbl.rows.length/2);
+		addButton(this.tbl.rows[rowIdx-1].cells[0],`showNextFlashcard()`,"Start");
 		this.tbl.rows[1].cells[0].innerHTML += "&nbsp;";
-		addButton(this.tbl.rows[1].cells[0],`review()`,"Review");
+		addButton(this.tbl.rows[rowIdx +1].cells[0],`review()`,"Review");
 	}
 	
 	showNextFlashcard()
@@ -136,13 +137,13 @@ class Game
 		
 		if  (this.soundFirst)
 		{
-			playSound(realIdx);
-			addPlayButton(this.tbl.rows[2].cells[0],realIdx);
+			playSoundOnline(realIdx);
+			addButton(this.tbl.rows[2].cells[0],`playSoundOnline(${realIdx})`,"Play Sound");
 		}
 		
 		else  
 		{
-			this.tbl.rows[0].cells[0].innerHTML = "<label  style='font-size:20px'>" + this.flashcards[idx].data["word"]+ "</label>";
+			this.tbl.rows[0].cells[0].innerHTML = "<b><label  style='font-size:40px'>" + this.flashcards[idx].data["word"]+ "</label></b>";
 		}
 		addButton(this.tbl.rows[1].cells[0],`showFlashCard(${idx})`,"Show Answer");
 		
@@ -156,35 +157,38 @@ class Game
 		if  (!this.soundFirst)
 		{
 			var realIdx = flashcard.index;
-			playSound(realIdx);
-			addPlayButton(this.tbl.rows[2].cells[0],realIdx,true);
+			playSoundOnline(realIdx);
+
 		}
 		
-		this.tbl.rows[0].cells[0].innerHTML = "<label  style='font-size:20px'>" + flashcard.data["word"]+"</label>";
-		
-		var colNum = 0;
+		this.tbl.rows[0].cells[0].innerHTML = "<b><label  style='font-size:40px'>" + flashcard.data["word"]+"</label></b>";
+
+		var colNum = 1;
 		for (let i = 0; i< flashcard.keys.length; i++)
 		{
 			const title = flashcard.keys[i]
 
 			if (title == "example" || title == "known" || title == "word") {continue;}
-			console.log(this.tbl.rows.length);
-			this.tbl.rows[1].cells[colNum].innerHTML = flashcard.data[flashcard.keys[i]];
+			this.tbl.rows[colNum].cells[0].innerHTML = flashcard.data[flashcard.keys[i]];
 
 			colNum++;
 		}
 		
 		if(flashcard.data.example) {this.tbl.rows[0].cells[0].innerHTML += "<br> <b>Example:</b>&emsp; &emsp;" + flashcard.data.example;}
 		
-		removeAllChildNodes(this.tbl.rows[1].cells[0]);
+		// removeAllChildNodes(this.tbl.rows[0].cells[0]);
+		this.tbl.rows[colNum].cells[0].innerHTML = "Did you remember? <br><br>";
+		addButton(this.tbl.rows[colNum].cells[0],`markRemembered(${index})`,"Yes");
 		
-		this.tbl.rows[1].cells[0].innerHTML = "Did you remember? <br><br>";
+		this.tbl.rows[colNum].cells[0].innerHTML += "&nbsp;"
 		
-		addButton(this.tbl.rows[1].cells[0],`markRemembered(${index})`,"Yes");
+		addButton(this.tbl.rows[colNum].cells[0],`didNotRemember()`,"No");
+
+		this.tbl.rows[colNum].cells[0].innerHTML += "<br><br>"
+
+		addButton(this.tbl.rows[colNum].cells[0],`playSoundOnline(${flashcard.index})`,"Play Sound");
 		
-		this.tbl.rows[1].cells[0].innerHTML =  this.tbl.rows[1].cells[0].innerHTML + "&nbsp;";
 		
-		addButton(this.tbl.rows[1].cells[0],`didNotRemember()`,"No");
 
 	}
 	
@@ -203,18 +207,24 @@ class Game
 		
 		document.getElementById("remembered").innerHTML = `${this.rememberedCnt}/${this.flashcards.length}`;
 		
-		if (this.gameEnded()) {return;}
+		if (this.gameEnded()) 
+		{
+			this.tbl.rows[0].cells[0].innerHTML = "<h1 style='font-size:48px; text-align:center;'>Game Over! :)</h1>";
+			return;
+		}
 		
 		this.showNextFlashcard();
-		
-		//alert(this.remembered);
+
 	}
 	
 	clearTable()
 	{
-		this.tbl.rows[0].cells[0].innerHTML = "";
-		this.tbl.rows[1].cells[0].innerHTML = "";
-		this.tbl.rows[2].cells[0].innerHTML = "";
+
+		for (let i=0; i<this.tbl.rows.length;i++)
+		{
+			this.tbl.rows[i].cells[0].innerHTML = "";
+		}
+		
 	}
 	
 	
