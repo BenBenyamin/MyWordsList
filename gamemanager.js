@@ -92,6 +92,7 @@ class Game
 	{
 		this.flashcards = flashCardList;
 		this.remembered = Array(flashCardList.length).fill(false);
+		this.timesShown = Array(this.flashcards.length).fill(0);
 		this.soundFirst = soundFirst;
 		this.rememberedCnt  = 0;
 
@@ -128,9 +129,7 @@ class Game
 	showNextFlashcard()
 	{
 		
-		var idx = Math.floor((Math.random() * this.flashcards.length));
-		while (this.remembered[idx]) { idx = Math.floor((Math.random() * this.flashcards.length)); }
-		
+		var idx = this.getNextIndex()	
 		
 		var realIdx = this.flashcards[idx].index;
 		//var realIdx = this.realIndex(idx);
@@ -210,10 +209,58 @@ class Game
 		if (this.gameEnded()) 
 		{
 			this.tbl.rows[0].cells[0].innerHTML = "<h1 style='font-size:48px; text-align:center;'>Game Over! :)</h1>";
+			
+
+			this.showFlashCardSummary(0,true);
+			for (let i =1; i<this.flashcards.length; i++)
+			{
+				this.showFlashCardSummary(i,false);
+			}
+
+		
 			return;
 		}
 		
 		this.showNextFlashcard();
+	}
+
+	showFlashCardSummary(idx, title = false)
+	{
+		const flashcard = this.flashcards[idx]
+		const clone = flashcard.tbl.cloneNode(true); // deep copy
+		clone.style.display = "table"; // or "block"
+		clone.style.visibility = "visible";
+		
+		if (title)  { clone.rows[0].style.display = "";}
+		else 		{clone.rows[0].style.display = "none";}
+
+		let i =0;
+		console.log(clone.rows.length)
+		for (; i<Math.min(clone.rows.length,2);i++)
+		{
+			const insertPos = Math.max(0, clone.rows[i].cells.length - 1);
+			const newCell = clone.rows[i].insertCell(insertPos);
+
+			if (i == 0) 
+			{
+				newCell.innerHTML = "<b>Score</b>";
+			} 
+			else 
+			{
+				newCell.innerHTML = (100.0 / (this.timesShown[idx])).toFixed(1) + "%";
+			}
+			newCell.style.backgroundColor = "white";
+			newCell.style.textAlign = "center";
+
+			for (let cell of clone.rows[i].cells) 
+				{
+					cell.style.backgroundColor = "white";
+				}
+		}
+		
+		clone.rows[clone.rows.length - 1].cells[0].colSpan = clone.rows[0].cells.length;
+		this.tbl.rows[1].cells[0].style.backgroundColor = "white";
+		this.tbl.rows[1].cells[0].appendChild(clone);
 
 	}
 	
@@ -226,6 +273,27 @@ class Game
 		}
 		
 	}
+
+	getNextIndex() 
+	{
+		// find the minimum times shown among unremembered cards
+		const minShown = Math.min(
+		  ...this.timesShown.filter((_, i) => !this.remembered[i])
+		);
+	  
+		let idx = Math.floor(Math.random() * this.flashcards.length);
+	  
+		// if card is remembered or shown more than the minimum, keep drawing until acceptable
+		while (this.remembered[idx] || this.timesShown[idx] > minShown) {
+		  idx = Math.floor(Math.random() * this.flashcards.length);
+		}
+	  
+		// mark this card as shown
+		this.timesShown[idx]++;
+	  
+		return idx;
+	  }
+	  
 	
 	
 	review()
@@ -278,6 +346,7 @@ class Game
 	restart()
 	{
 		this.rememberedCnt = 0;
+		this.tbl.rows[1].cells[0].style.backgroundColor = "";
 		document.getElementById("remembered").innerHTML = `${this.rememberedCnt}/${this.flashcards.length}`;
 		this.remembered = Array(this.flashcards.length).fill(false);
 		this.clearTable();
